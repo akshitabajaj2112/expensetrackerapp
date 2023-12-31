@@ -2,11 +2,11 @@ import React, { useState, useEffect, startTransition } from "react";
 
 
 function App() {
-  const [incomes, setIncomes] = useState(JSON.parse(localStorage.getItem("incomes")) || []);
-  const [expenses, setExpenses] = useState(JSON.parse(localStorage.getItem("expenses")) || []);
-  const [transactions, setTransactions] = useState(JSON.parse(localStorage.getItem("transactions")) || []);
+  const [incomes, setIncomes] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [transactions, setTransactions] = useState([]);
 
-  const [balance, setBalance] = useState(JSON.parse(localStorage.getItem("balance")) || 0);
+  const [balance, setBalance] = useState(0);
   const [textdescInput, setTextdescInput] = useState("");
   const [amountInput, setAmountInput] = useState("");
 
@@ -20,7 +20,9 @@ function App() {
   const calculateBalance = () => {
     const totalIncome = incomes.reduce((total, amount) => total + amount, 0);
     const totalExpense = expenses.reduce((total, amount) => total + amount, 0);
-    return totalIncome + totalExpense;
+    let balance = totalIncome + totalExpense;
+    console.log(`balance = ${balance}`)
+    return balance;
   };
 
   
@@ -34,6 +36,7 @@ function App() {
   
 
   const addTransaction = () => {
+    console.log('addTransaction called');
     const amount = parseFloat(amountInput);
 
     if (isNaN(amount) || textdescInput === "") {
@@ -42,70 +45,79 @@ function App() {
     }
 
     if (amount >= 0) {
+      console.log(`setting the amount ` )
       setIncomes([...incomes, amount]);
     } else {
       setExpenses([...expenses, amount]);
     }
+    
+    console.log(`updated incomes = ${incomes}`);
+    
+    console.log(`updated expenses = ${expenses}`);
 
-    setBalance(calculateBalance());
+    let balance =calculateBalance();
 
-    updateLocalStorage();
+    console.log(`balance = ${balance}`);
 
-    // Clear input values
+    setBalance(balance);
+
+    // updateLocalStorage();
+
+    // // Clear input values
     setTextdescInput("");
     setAmountInput("");
 
-    updateTransactionList();
+    // updateTransactionList();
   };
 
   
   const updateTransactionList = () => {
     // Update income display
-    console.log(`incomes=${incomes}`)
+  //   console.log(`incomes=${incomes}`)
     
-    const totalIncome = incomes.reduce((total, amount) => total + amount, 0);
-    console.log(`incomes=${incomes}`)
+  //   const totalIncome = incomes.reduce((total, amount) => total + amount, 0);
+  //   console.log(`incomes=${incomes}`)
 
-    const incomeContainer = document.getElementById("money-plus");
-    incomeContainer.textContent = `+$${totalIncome.toFixed(2)}`;
+  //   const incomeContainer = document.getElementById("money-plus");
+  //   incomeContainer.textContent = `+$${totalIncome.toFixed(2)}`;
 
-    // Update expense display
-    const totalExpense = expenses.reduce((total, amount) => total + amount, 0);
-    const expenseContainer = document.getElementById("money-minus");
-    expenseContainer.textContent = `-$${Math.abs(totalExpense).toFixed(2)}`;
+  //   // Update expense display
+  //   const totalExpense = expenses.reduce((total, amount) => total + amount, 0);
+  //   const expenseContainer = document.getElementById("money-minus");
+  //   expenseContainer.textContent = `-$${Math.abs(totalExpense).toFixed(2)}`;
 
-    // Update balance display
-    const totalBalance = document.getElementById("balance");
-    totalBalance.textContent = `${calculateBalance().toFixed(2)}`;
+  //   // Update balance display
+  //   const totalBalance = document.getElementById("balance");
+  //   totalBalance.textContent = `${calculateBalance().toFixed(2)}`;
 
-    // Update transaction list
-    const transactionList = document.getElementById("transaction-list");
-    transactionList.innerHTML = "";
+  //   // Update transaction list
+  //   const transactionList = document.getElementById("transaction-list");
+  //   transactionList.innerHTML = "";
 
 
 
-   transactions.push([...incomes, ...expenses]);
+  //  transactions.push([...incomes, ...expenses]);
 
   };
 
   
- const deleteTransaction = (index) => {
-    console.log('delete Transaction called');
+//  const deleteTransaction = (index) => {
+//     console.log('delete Transaction called');
 
-    if (index >= 0 && index < incomes.length) {
-      const updatedIncomes = [...incomes];
-      updatedIncomes.splice(index, 1);
-      setIncomes(updatedIncomes);
-    } else if (index >= incomes.length && index < incomes.length + expenses.length) {
-      const updatedExpenses = [...expenses];
-      updatedExpenses.splice(index - incomes.length, 1);
-      setExpenses(updatedExpenses);
-    }
+//     if (index >= 0 && index < incomes.length) {
+//       const updatedIncomes = [...incomes];
+//       updatedIncomes.splice(index, 1);
+//       setIncomes(updatedIncomes);
+//     } else if (index >= incomes.length && index < incomes.length + expenses.length) {
+//       const updatedExpenses = [...expenses];
+//       updatedExpenses.splice(index - incomes.length, 1);
+//       setExpenses(updatedExpenses);
+//     }
 
-    setBalance(calculateBalance());
+//     setBalance(calculateBalance());
     
-    updateLocalStorage();
-  };
+//     updateLocalStorage();
+//   };
 
   
 
