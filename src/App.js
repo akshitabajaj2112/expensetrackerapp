@@ -1,42 +1,54 @@
-import React, { useState, useEffect, startTransition } from "react";
-
+import React, { useState } from "react";
+import Balance from "./Balance";
+import TransactionList from "./TransactionList";
 
 function App() {
-  const [incomes, setIncomes] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [transactions, setTransactions] = useState([]);
-
+  const [incomes, setIncomes] = useState(
+    JSON.parse(localStorage.getItem("incomes")) || []
+  );
+  const [expenses, setExpenses] = useState(
+    JSON.parse(localStorage.getItem("expenses")) || []
+  );
   const [balance, setBalance] = useState(0);
   const [textdescInput, setTextdescInput] = useState("");
-  const [amountInput, setAmountInput] = useState("");
-
-  
-  useEffect(() => {
-    updateTransactionList();
-  }, [incomes, expenses]);
-
-  
+  const [amountInput, setAmountInput] = useState(0);
 
   const calculateBalance = () => {
     const totalIncome = incomes.reduce((total, amount) => total + amount, 0);
     const totalExpense = expenses.reduce((total, amount) => total + amount, 0);
-    let balance = totalIncome + totalExpense;
-    console.log(`balance = ${balance}`)
-    return balance;
+    return totalIncome + totalExpense;
   };
-
-  
 
   const updateLocalStorage = () => {
     localStorage.setItem("incomes", JSON.stringify(incomes));
     localStorage.setItem("expenses", JSON.stringify(expenses));
-    localStorage.setItem("balance", JSON.stringify(calculateBalance()));
   };
 
-  
+  const updateBalance = () => {
+    const newBalance = calculateBalance();
+    setBalance(newBalance);
+  };
+
+  const updateTransactionList = () => {
+    // Update income display
+    const totalIncome = incomes.reduce((total, amount) => total + amount, 0);
+    const incomeContainer = document.getElementById("money-plus");
+    if (incomeContainer) {
+      incomeContainer.textContent = `+$${totalIncome.toFixed(2)}`;
+    }
+
+    // Update expense display
+    const totalExpense = expenses.reduce((total, amount) => total + amount, 0);
+    const expenseContainer = document.getElementById("money-minus");
+    if (expenseContainer) {
+      expenseContainer.textContent = `-$${Math.abs(totalExpense).toFixed(2)}`;
+    }
+  };
 
   const addTransaction = () => {
-    console.log('addTransaction called');
+    const textdescInput = document.getElementById("description").value;
+    const amountInput = document.getElementById("amount").value;
+
     const amount = parseFloat(amountInput);
 
     if (isNaN(amount) || textdescInput === "") {
@@ -45,81 +57,57 @@ function App() {
     }
 
     if (amount >= 0) {
-      console.log(`setting the amount ` )
       setIncomes([...incomes, amount]);
     } else {
       setExpenses([...expenses, amount]);
     }
-    
-    console.log(`updated incomes = ${incomes}`);
-    
-    console.log(`updated expenses = ${expenses}`);
 
-    let balance =calculateBalance();
+    updateLocalStorage();
+    updateTransactionList();
+    updateBalance();
+    // console.log('updated')
 
-    console.log(`balance = ${balance}`);
-
-    setBalance(balance);
-
-    // updateLocalStorage();
-
-    // // Clear input values
-    setTextdescInput("");
-    setAmountInput("");
-
-    // updateTransactionList();
+    // Clear input values
+    document.getElementById("description").value = "";
+    document.getElementById("amount").value = "";
   };
 
-  
-  const updateTransactionList = () => {
-    // Update income display
-  //   console.log(`incomes=${incomes}`)
-    
-  //   const totalIncome = incomes.reduce((total, amount) => total + amount, 0);
-  //   console.log(`incomes=${incomes}`)
+  const deleteTransaction = (index) => {
+    if (index >= 0 && index < incomes.length) {
+      setIncomes([...incomes.slice(0, index), ...incomes.slice(index + 1)]);
+    } else if (
+      index >= incomes.length &&
+      index < incomes.length + expenses.length
+    ) {
+      setExpenses([
+        ...expenses.slice(0, index - incomes.length),
+        ...expenses.slice(index - incomes.length + 1),
+      ]);
+    }
 
-  //   const incomeContainer = document.getElementById("money-plus");
-  //   incomeContainer.textContent = `+$${totalIncome.toFixed(2)}`;
-
-  //   // Update expense display
-  //   const totalExpense = expenses.reduce((total, amount) => total + amount, 0);
-  //   const expenseContainer = document.getElementById("money-minus");
-  //   expenseContainer.textContent = `-$${Math.abs(totalExpense).toFixed(2)}`;
-
-  //   // Update balance display
-  //   const totalBalance = document.getElementById("balance");
-  //   totalBalance.textContent = `${calculateBalance().toFixed(2)}`;
-
-  //   // Update transaction list
-  //   const transactionList = document.getElementById("transaction-list");
-  //   transactionList.innerHTML = "";
-
-
-
-  //  transactions.push([...incomes, ...expenses]);
-
+    updateTransactionList();
+    updateLocalStorage();
   };
 
-  
-//  const deleteTransaction = (index) => {
-//     console.log('delete Transaction called');
+  const editTransaction = (index, editedAmount) => {
+    if (index >= 0 && index < incomes.length) {
+      // Editing an income transaction
+      const updatedIncomes = [...incomes];
+      updatedIncomes[index] = editedAmount;
+      setIncomes(updatedIncomes);
+    } else if (index >= incomes.length && index < incomes.length + expenses.length) {
+      // Editing an expense transaction
+      const updatedExpenses = [...expenses];
+      updatedExpenses[index - incomes.length] = editedAmount;
+      setExpenses(updatedExpenses);
+    }
 
-//     if (index >= 0 && index < incomes.length) {
-//       const updatedIncomes = [...incomes];
-//       updatedIncomes.splice(index, 1);
-//       setIncomes(updatedIncomes);
-//     } else if (index >= incomes.length && index < incomes.length + expenses.length) {
-//       const updatedExpenses = [...expenses];
-//       updatedExpenses.splice(index - incomes.length, 1);
-//       setExpenses(updatedExpenses);
-//     }
+    updateTransactionList();
+    updateLocalStorage();
+    updateBalance();
+    console.log(`Edit transaction at index ${index}`);
+  };
 
-//     setBalance(calculateBalance());
-    
-//     updateLocalStorage();
-//   };
-
-  
 
   return (
     <>
@@ -127,35 +115,16 @@ function App() {
         <h1>Expense Tracker App</h1>
       </div>
 
-      <div className="balance">
-        <h3>Your Balance</h3>
-        <h4 id="balance">{balance.toFixed(2)}</h4>
-      </div>
+      <Balance incomes={incomes} expenses={expenses} />
 
-      <div id="inc-exp-container">
-        <div className="money-plus" id="money-plus">
-          +$0.00
-        </div>
-        <div className="money-minus" id="money-minus">
-          -$0.00
-        </div>
-      </div>
-
-      <h4>Transaction history :</h4>
-       <ul id="transaction-list">
-        {transactions.map((item, index) => (
-          <li key={index}>
-            {item}{' '}
-            <span>${index + 1}. Transaction: ${item.amount.toFixed(2)}</span>
-            <button onClick={() => console.log(`Button clicked for ${item}`)}>
-              Click me
-            </button>
-          </li>
-        ))}
-       </ul> 
+      <TransactionList
+        incomes={incomes}
+        expenses={expenses}
+        onDelete={deleteTransaction}
+        onEdit = {editTransaction}
+      />
 
       <h4>Add Transactions here: </h4>
-
       <div className="form-control">
         <label htmlFor="description">Text</label>
         <input
@@ -184,12 +153,8 @@ function App() {
       <button className="btn" onClick={addTransaction}>
         Add Transaction
       </button>
-
-      
     </>
   );
 }
 
 export default App;
-
-
